@@ -20,16 +20,19 @@ namespace TempleRun.Player
         private float jumpHeight = 1.0f;
         [SerializeField]
         private float initialGravity = -9.81f;
+        
         [SerializeField]
         private LayerMask groundLayer;
         [SerializeField]
         private LayerMask turnLayer;
         [SerializeField]
+        private LayerMask obstacleLayer;
+        [SerializeField]
         private Animator animator;
         [SerializeField]
         private AnimationClip slideAnimationClip;
 
-
+        [SerializeField]
         private float playerSpeed;
         private Vector3 movementDirection = Vector3.forward;
         private Vector3 playerVelocity;
@@ -40,16 +43,23 @@ namespace TempleRun.Player
         private InputAction slideAction;
         private float gravity;
 
+        [SerializeField]
+        private float scoreMultiplier = 10f;
+
         private CharacterController controller;
       
         private int slidingAnimationId;
+        private float score = 0;
 
-         
         private bool sliding = false;
 
 
         [SerializeField]
         private UnityEvent<Vector3> turnEvent;
+        [SerializeField]
+        private UnityEvent<int> gameOverEvent;
+        [SerializeField]
+        private UnityEvent<int> scoreUpdateEvent;
 
         private void Awake()
         {
@@ -62,6 +72,44 @@ namespace TempleRun.Player
             turnAction = playerInput.actions["Turn"];
             jumpAction = playerInput.actions["Jump"];
             slideAction = playerInput.actions["Slide"];
+        }
+
+        private void Start()
+        {
+            playerSpeed = initialPlayerSpeed;
+            gravity = initialGravity;
+        }
+
+        private void Update()
+        {
+            if (!IsGrounded(20f))
+            {
+                //GameOver();
+                //return;
+            }
+
+            score += scoreMultiplier * Time.deltaTime;
+            scoreUpdateEvent.Invoke((int)score);
+
+            controller.Move(transform.forward * playerSpeed * Time.deltaTime);
+            if (IsGrounded() && playerVelocity.y < 0)
+            {
+                playerVelocity.y = 0f;
+            }
+
+            playerVelocity.y += gravity * Time.deltaTime;
+            controller.Move(playerVelocity * Time.deltaTime);
+
+            if (playerSpeed < maximumPlayerSpeed)
+            {
+                playerSpeed += increaseSpeed * Time.deltaTime;
+                gravity = initialGravity - playerSpeed;
+
+                if(animator.speed < 1.25f)
+                {
+                    animator.speed += (1 / playerSpeed) * Time.deltaTime;
+                }
+            }
         }
 
         private void OnEnable()
@@ -84,13 +132,13 @@ namespace TempleRun.Player
 
             if (!turnPosition.HasValue)
             {
+                GameOver();
                 return;
             }
 
             Vector3 targetDireciton = Quaternion.AngleAxis(90 * context.ReadValue<float>(), Vector3.up) * movementDirection;
             turnEvent.Invoke(targetDireciton);
             Turn(context.ReadValue<float>(),turnPosition.Value);
-
         }
 
         private void Turn(float turnValue, Vector3 turnPosition)
@@ -121,6 +169,7 @@ namespace TempleRun.Player
             return null;
         }
 
+
         private void PlayerSlide(InputAction.CallbackContext context)
         {
             if(!sliding && IsGrounded())
@@ -128,6 +177,7 @@ namespace TempleRun.Player
                 StartCoroutine(Slide())  ;
             }
         }
+
 
         private IEnumerator Slide()
         {   
@@ -144,7 +194,7 @@ namespace TempleRun.Player
             //play the sliding animation
             animator.Play(slidingAnimationId);
 
-            yield return new WaitForSeconds(slideAnimationClip.length);
+            yield return new WaitForSeconds(slideAnimationClip.length/animator.speed);
 
             //set the chacracter controller back to normal after sliding
             controller.height *= 2;
@@ -152,6 +202,7 @@ namespace TempleRun.Player
             sliding = false;
 
         }
+
 
         private void PlayerJump(InputAction.CallbackContext context)
         {
@@ -162,23 +213,10 @@ namespace TempleRun.Player
             }
         }
 
-        private void Start()
-        {
-            playerSpeed = initialPlayerSpeed;
-            gravity = initialGravity;
-        }
 
-        private void Update()
-        {
-            controller.Move(transform.forward * playerSpeed * Time.deltaTime);
-            if (IsGrounded() && playerVelocity.y < 0)
-            {
-                playerVelocity.y = 0f;
-            }
 
-            playerVelocity.y += gravity * Time.deltaTime;
-            controller.Move(playerVelocity * Time.deltaTime);
-        }
+
+        
 
         private bool IsGrounded(float length = .2f)
         {
@@ -202,6 +240,20 @@ namespace TempleRun.Player
 
         }
 
+        private void OnControllerColliderHit(ControllerColliderHit hit)
+        {
+            if (((1 << hit.collider.gameObject.layer) & obstacleLayer) != 0) 
+            {
+                GameOver();
 
+            }
+        }
+
+        private void GameOver()
+        {
+            Debug.Log("Game Over");
+            gameOverEvent.Invoke((int)score);
+            gameObject.SetActive(false);
+        }
     }
 }
