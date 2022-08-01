@@ -1790,6 +1790,7 @@ MonoBehaviour:
   slideAnimationClip: {fileID: 7400000, guid: 869699bdaa00d0e45b1ef9cab60173cd, type: 2}
   playerSpeed: 0
   scoreMultiplier: 10
+  mesh: {fileID: 1862910071}
   turnEvent:
     m_PersistentCalls:
       m_Calls:

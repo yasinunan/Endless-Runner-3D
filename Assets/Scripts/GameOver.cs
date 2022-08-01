@@ -28,8 +28,8 @@ public class GameOver : MonoBehaviour
         //gameOverCanvas.SetActive(true);
         this.score = score;
         scoreText.text = score.ToString();
-        GetLeaderBoard();  
-
+        GetLeaderBoard();
+        AddXP(score);
     }
 
   
@@ -127,7 +127,19 @@ public class GameOver : MonoBehaviour
 
     public void AddXP(int score)
     {
+        LootLockerSDKManager.SubmitXp(score, (response) =>
+        {
+            if (response.success)
+            {
+                Debug.Log("Successfully submitted the XP");
+            }
 
+            else
+            {
+                Debug.Log("Failed adding XP");
+            }
+                
+        });
     }
 
     public void ReloadScene()

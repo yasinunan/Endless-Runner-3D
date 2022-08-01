@@ -58,7 +58,7 @@ GameObject:
   - component: {fileID: 2321152405329592023}
   - component: {fileID: 8850927214282965293}
   - component: {fileID: 4097692310678457393}
-  m_Layer: 8
+  m_Layer: 7
   m_Name: Entry
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -374,7 +374,7 @@ GameObject:
   - component: {fileID: 5442956170591159588}
   - component: {fileID: 4163924903548961238}
   - component: {fileID: 5341697770862133703}
-  m_Layer: 8
+  m_Layer: 7
   m_Name: Sideways
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -702,7 +702,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 837941063547552833}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Pivot
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Events;
+using LootLocker.Requests;
 
 namespace TempleRun.Player
 {
@@ -46,6 +47,9 @@ namespace TempleRun.Player
         [SerializeField]
         private float scoreMultiplier = 10f;
 
+        [SerializeField]
+        private GameObject mesh;
+
         private CharacterController controller;
       
         private int slidingAnimationId;
@@ -78,6 +82,37 @@ namespace TempleRun.Player
         {
             playerSpeed = initialPlayerSpeed;
             gravity = initialGravity;
+            StartCoroutine(ChangePlayerMaterial());
+        }
+
+        private IEnumerator ChangePlayerMaterial()
+        {
+            string color = "";
+
+            bool? playerSkinRequest = null;
+            LootLockerSDKManager.GetSingleKeyPersistentStorage("Skin", (response) => {
+                if (response.success)
+                {
+                    Debug.Log("Succesfully retrieved player storage with value" + response.payload.value);
+                    color = response.payload.value;
+                    playerSkinRequest = true;
+                }
+                else
+                {
+                    Debug.Log("Failed retrieving player storage with value" + response.payload.value);
+                    playerSkinRequest = false ;
+
+                }
+            });
+
+            yield return new WaitUntil(() => playerSkinRequest.HasValue);
+            if (playerSkinRequest.Value)
+            {
+                if(ColorUtility.TryParseHtmlString(color, out Color newColor))
+                {
+                    mesh.GetComponent<MeshRenderer>().material.color = newColor;
+                }
+            }
         }
 
         private void Update()
